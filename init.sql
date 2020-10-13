@@ -26,9 +26,9 @@ CREATE TABLE zeichen
 	FOREIGN KEY (auslaut) REFERENCES auslaute (id)
 ) WITHOUT ROWID;
 
-CREATE TABLE audruecke
+CREATE TABLE ausdruecke
 (
-	audruck TEXT PRIMARY KEY,
+	ausdruck TEXT PRIMARY KEY,
 	bedeutung TEXT NOT NULL
 ) WITHOUT ROWID;
 
