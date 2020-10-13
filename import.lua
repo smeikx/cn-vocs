@@ -1,15 +1,40 @@
 #!/usr/bin/env lua
 
--- 我;ich;wǒ
--- 谢谢;Danke!
+--[[
+	This script inserts Chinese characters and expressions, including pinyin pronunciation and translation, from a CSV-like file into an SQLite database.
 
-local separator <const> = ';'
+	The first argument has to be the name of the database file.
+
+	The second argument has to be the name of a file that contains lines of the following format:
+		<character>;<pinyin>;<translation>
+		<charachters>;<translation>
+	One file can contain lines of both formats.
+]]--
+
+local database <const>, input_file <const> = arg[1], arg[2]
+local separator <const> = ';' -- seperator in input file
+
+
+-- get IDs of initials and finals
+local syllables <const> = {}
+do
+	-- in this case ‘*’ is the same as ‘id, laut’
+	local query <const> = 'SELECT * FROM anlaute; SELECT * FROM auslaute;'
+	local sqlite_syllables <close> = io.popen(string.format('sqlite3 "%s" "%s"', database, query), 'r')
+	assert(sqlite_syllables)
+
+	for record in sqlite_syllables:lines() do
+		local id, syllable = string.match(record, '([^|]+)|([^|]+)')
+		syllables[syllable] = id
+	end
+end
+
 
 local sql_generator <const> = {
 	['expressions'] = nil, -- inserts into table ‘ausdruecke’
 	['characters'] = nil -- inserts into table ‘zeichen’
 }
--- the following block populats the functions declared in ‘sql_generator’
+-- the following block populates the functions declared in ‘sql_generator’
 do
 	-- helper function to wrap the values to be inserted in parenthesis
 	local function format_values (records)
@@ -60,9 +85,10 @@ do
 end
 
 
+-- the following loop parses the input file
 local pattern <const> = string.format('[^%s]+', separator)
-local characters, expressions = {}, {}
-for line in io.lines(arg[1]) do
+local characters <const>, expressions <const> = {}, {}
+for line in io.lines(input_file) do
 	local columns = {}
 	for match in string.gmatch(line, pattern) do
 		columns[#columns+1] = match
@@ -77,5 +103,8 @@ for line in io.lines(arg[1]) do
 	end
 end
 
-io.stdout:write(sql_generator.characters(characters) .. sql_generator.expressions(expressions))
 
+-- this block inserts the read data into the provided database
+do
+	assert(os.execute(string.format('sqlite3 "%s" "%s"', database, insert_query)))
+end
