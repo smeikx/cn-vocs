@@ -64,8 +64,8 @@ do
 		-- The cached IDs allow avoiding a SELECT query per inserted character.
 		local syllables <const> = {}
 		do
-			-- in this case ‘*’ is the same as ‘id, laut’
-			local query <const> = 'SELECT * FROM anlaute; SELECT * FROM auslaute;'
+			-- in this case ‘*’ is the same as ‘id, syllable’
+			local query <const> = 'SELECT * FROM initials; SELECT * FROM finals;'
 			local sqlite_syllables <close> = io.popen(string.format('sqlite3 "%s" "%s"', DATABASE, query), 'r')
 			assert(sqlite_syllables)
 
@@ -103,7 +103,7 @@ do
 			return initial, string.gsub(final, tone_pattern, vowels), tone
 		end
 
-		create_insert_sql(CHARACTERS, 'zeichen', 'zeichen, anlaut, auslaut, ton',
+		create_insert_sql(CHARACTERS, 'characters', 'character, initial, final, tone',
 			function (entry)
 				local initial, final, tone = split_pinyin(entry[2])
 				initial = initial == '' and 'NULL' or syllables[initial]
@@ -114,7 +114,7 @@ do
 
 	-- create INSERT statement for ‘EXPRESSIONS’
 	do
-		create_insert_sql(EXPRESSIONS, 'ausdruecke', 'ausdruck, bedeutung',
+		create_insert_sql(EXPRESSIONS, 'expressions', 'expression, translation',
 		function (entry)
 			return string.format('("%s"),', table.concat(entry, '","'))
 		end)

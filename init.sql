@@ -1,39 +1,39 @@
 PRAGMA foreign_keys = ON;
 
 
-CREATE TABLE anlaute
+CREATE TABLE initials
 (
 	id INTEGER PRIMARY KEY,
-	laut TEXT UNIQUE NOT NULL
+	syllable TEXT UNIQUE NOT NULL
 ) WITHOUT ROWID;
 
 
-CREATE TABLE auslaute
+CREATE TABLE finals
 (
 	id INTEGER PRIMARY KEY,
-	laut TEXT UNIQUE NOT NULL
+	syllable TEXT UNIQUE NOT NULL
 ) WITHOUT ROWID;
 
 
-CREATE TABLE zeichen
+CREATE TABLE characters
 (
-	zeichen TEXT PRIMARY KEY,
-	anlaut INTEGER, -- FK
-	auslaut INTEGER NOT NULL, -- FK
-	ton INTEGER NOT NULL,
+	character TEXT PRIMARY KEY,
+	initial INTEGER, -- FK
+	final INTEGER NOT NULL, -- FK
+	tone INTEGER NOT NULL,
 	-- FOREIGN KEYs must be at the end, sqlite rejects them otherwise
-	FOREIGN KEY (anlaut) REFERENCES anlaute (id),
-	FOREIGN KEY (auslaut) REFERENCES auslaute (id)
+	FOREIGN KEY (initial) REFERENCES initials (id),
+	FOREIGN KEY (final) REFERENCES finals (id)
 ) WITHOUT ROWID;
 
-CREATE TABLE ausdruecke
+CREATE TABLE expressions
 (
-	ausdruck TEXT PRIMARY KEY,
-	bedeutung TEXT NOT NULL
+	expression TEXT PRIMARY KEY,
+	translation TEXT NOT NULL
 ) WITHOUT ROWID;
 
 
-INSERT INTO anlaute (id, laut)
+INSERT INTO initials (id, syllable)
 VALUES
 	(1, 'b'),
 	(2, 'd'),
@@ -57,7 +57,7 @@ VALUES
 	(20, 'r'),
 	(21, 'm');
 
-INSERT INTO auslaute (id, laut)
+INSERT INTO finals (id, syllable)
 VALUES
 	(1, 'ai'),
 	(2, 'ao'),
