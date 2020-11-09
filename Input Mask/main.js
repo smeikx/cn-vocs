@@ -92,13 +92,18 @@ const templates = Object.freeze(
 
 let entry_count = 0;
 
-const create_entry = () =>
+const create_entry = (type = 'character') =>
 {
 	const
 		entry = templates.get_copy_of('entry'),
 		character_inputs = templates.get_copy_of('character'),
 		expression_inputs = templates.get_copy_of('expression'), // TODO: maybe generate on demand
-		first_field = entry.getElementsByTagName('input')[0];
+		first_field = entry.getElementsByTagName('input')[0],
+		backup_type_key =
+			(sessionStorage.entry_count =
+			entry.dataset.index =
+			character_inputs.dataset.index =
+			expression_inputs.dataset.index = entry_count++) + 'type';
 
 	let previous_length = 0;
 	first_field.addEventListener('input', (event) =>
@@ -109,42 +114,71 @@ const create_entry = () =>
 			// entry describes an expression
 			entry.replaceChild(expression_inputs, character_inputs);
 			first_field.classList.replace('character', 'expression');
+			sessionStorage[backup_type_key] = 'expression';
 		}
 		else if (current_length <= 1 && previous_length > 1)
 		{
 			// entry describes a single character
 			entry.replaceChild(character_inputs, expression_inputs);
 			first_field.classList.replace('expression', 'character');
+			sessionStorage[backup_type_key] = 'character';
 		}
 		previous_length = current_length;
 	});
+
 	// per default, the entry describes a single character
-	entry.appendChild(character_inputs);
-
-	entry.dataset.index =
-		character_inputs.dataset.index =
-			expression_inputs.dataset.index = entry_count++;
-
+	entry.appendChild(type == 'character' ? character_inputs : expression_inputs);
+	sessionStorage[backup_type_key] = type;
 	return entry;
 };
 
 
 const entries = document.getElementById('entries');
 
-	/*
 // restore entries from this session
 {
-	const length = sessionStorage.length;
-	if (length > 0)
+	const cached_entry_count = sessionStorage.entry_count;
+	if (cached_entry_count)
 	{
-		let inner_html = '';
-		for (let i = 0; i < length; ++i)
-			inner_html += sessionStorage[i];
-		entries.innerHTML = inner_html;
-		entry_count = length;
+
+		const create_character_entry = (id) =>
+		{
+			const
+				entry = create_entry(),
+				inputs = entry.getElementsByTagName('input');
+
+			inputs[0].value = sessionStorage[id + 'character'];
+			inputs[1].value = sessionStorage[id + 'pinyin'];
+			inputs[2].value = sessionStorage[id + 'tone'];
+			inputs[3].value = sessionStorage[id + 'meaning'];
+			inputs[4].value = sessionStorage[id + 'radicals'];
+
+			return entry;
+		};
+
+		const create_expression_entry = (id) =>
+		{
+			const
+				entry = create_entry('expression'),
+				inputs = entry.getElementsByTagName('input');
+
+			inputs[0].value = sessionStorage[id + 'expression'];
+			inputs[1].value = sessionStorage[id + 'translation'];
+
+			return entry;
+		};
+
+		for (let entry, i = 0; i <= cached_entry_count; ++i)
+		{
+			if (sessionStorage[i + 'type'] == 'character')
+				entry = create_character_entry(i);
+			else
+				entry = create_expression_entry(i);
+			console.log('sad', entry);
+			//entries.appendChild(entry);
+		}
 	}
 }
-*/
 
 
 /* assign function to add new input elements */
@@ -160,7 +194,6 @@ const entries = document.getElementById('entries');
 	document.getElementById('create-new-entry').addEventListener('click', () =>
 	{
 		const new_entry = entries.appendChild(create_entry());
-		sessionStorage[new_entry.dataset.index] = {};
 		new_entry.getElementsByTagName('input')[0].focus();
 		new_entry.addEventListener('change', record_backup);
 	});
@@ -174,39 +207,39 @@ document.getElementById('create-json').addEventListener('click', () =>
 
 	/* process character entries */ {
 		const
-			characters = fields.getElementsByClassName('character'),
-			pinyin = fields.getElementsByClassName('pinyin'),
-			tones = fields.getElementsByClassName('tone'),
-			translations = fields.getElementsByClassName('translation'),
-			radicals = fields.getElementsByClassName('radicals'),
-			entries = {};
+			characters = entries.getElementsByClassName('character'),
+			pinyin = entries.getElementsByClassName('pinyin'),
+			tones = entries.getElementsByClassName('tone'),
+			translations = entries.getElementsByClassName('translation'),
+			radicals = entries.getElementsByClassName('radicals'),
+			processed_entries = {};
 
 		for (let i = characters.length - 1; i >= 0; --i)
 		{
 			const {initial, final} = split_pinyin(pinyin[i].value);
 
-			entries[characters[i].value] = [
+			processed_entries[characters[i].value] = [
 				sound_indexes[initial],
 				sound_indexes[final],
-				parseInt(tones[i].value),
+				tones[i].valueAsNumber,
 				translations[i].value,
 				radicals[i].value
 			];
 		}
 
-		result.characters = entries;
+		result.characters = processed_entries;
 	}
 	/* process expression entries */ {
 		const
-			expressions = fields.getElementsByClassName('expression'),
-			meanings = fields.getElementsByClassName('meaning'),
+			expressions = entries.getElementsByClassName('expression'),
+			meanings = entries.getElementsByClassName('meaning'),
 			count = expressions.length,
-			entries = new Array(count);
+			processed_entries = new Array(count);
 
 		for (let i = 0; i < count; ++i)
-			entries[i] = [ expressions[i].value, meanings[i].value ];
+			processed_entries[i] = [ expressions[i].value, meanings[i].value ];
 
-		result.expressions = entries;
+		result.expressions = processed_entries;
 	}
 
 	const data = new Blob([JSON.stringify(result)], {type: 'text/plain;charset=utf-8'}),
@@ -218,4 +251,13 @@ document.getElementById('create-json').addEventListener('click', () =>
 	anchor.click();
 
 	window.URL.revokeObjectURL(url);
+});
+
+
+document.getElementById('clear').addEventListener('click', () =>
+{
+	sessionStorage.clear();
+	entry_count = 0;
+	entries.innerHTML = '';
+	entries.appendChild(create_entry());
 });
