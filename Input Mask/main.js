@@ -1,5 +1,8 @@
 'use strict';
 
+// entry → a character or expression with all accompaning information
+// field → one component of a field (e.g. ‘pinyin’ of a character)
+
 const remove_whitespace = (string) => string.replace(/\s/g, '');
 const contains_chinese = (string) => search(/[\u{4e00}-\u{9FFF}]/u) >= 0;
 
@@ -49,7 +52,7 @@ const templates = Object.freeze(
 	entry: (() =>
 	{
 		const entry = document.createElement('li');
-		entry.className = 'field';
+		entry.className = 'entry';
 		entry.innerHTML =
 		`<label for='characters'>Characters</label>
 		<input class='character' name='characters'>`;
@@ -87,6 +90,8 @@ const templates = Object.freeze(
 });
 
 
+let entry_count = 0;
+
 const create_entry = () =>
 {
 	const
@@ -115,26 +120,59 @@ const create_entry = () =>
 	});
 	// per default, the entry describes a single character
 	entry.appendChild(character_inputs);
+
+	entry.dataset.index =
+		character_inputs.dataset.index =
+			expression_inputs.dataset.index = entry_count++;
+
 	return entry;
 };
 
 
-const fields = document.getElementById('fields');
+const entries = document.getElementById('entries');
 
-// assign function to add new input elements
-document.getElementById('create-new-entry').addEventListener('click', () =>
+	/*
+// restore entries from this session
 {
-	fields.appendChild(create_entry()).getElementsByTagName('input')[0].focus();
-});
+	const length = sessionStorage.length;
+	if (length > 0)
+	{
+		let inner_html = '';
+		for (let i = 0; i < length; ++i)
+			inner_html += sessionStorage[i];
+		entries.innerHTML = inner_html;
+		entry_count = length;
+	}
+}
+*/
 
+
+/* assign function to add new input elements */
+{
+	const record_backup = (event) =>
+	{
+		const
+			target =	event.target,
+			entry = target.parentElement;
+		sessionStorage[entry.dataset.index+target.className] = target.value;
+	};
+
+	document.getElementById('create-new-entry').addEventListener('click', () =>
+	{
+		const new_entry = entries.appendChild(create_entry());
+		sessionStorage[new_entry.dataset.index] = {};
+		new_entry.getElementsByTagName('input')[0].focus();
+		new_entry.addEventListener('change', record_backup);
+	});
+}
 
 // assign function to download a JSON file
 document.getElementById('create-json').addEventListener('click', () =>
 {
 	const result = {};
-	const expressions = fields.getElementsByClassName('expression');
+	const expressions = entries.getElementsByClassName('expression');
 
-	/* process character fields */ {
+	/* process character entries */ {
 		const
 			characters = fields.getElementsByClassName('character'),
 			pinyin = fields.getElementsByClassName('pinyin'),
@@ -158,7 +196,7 @@ document.getElementById('create-json').addEventListener('click', () =>
 
 		result.characters = entries;
 	}
-	/* process expression fields */ {
+	/* process expression entries */ {
 		const
 			expressions = fields.getElementsByClassName('expression'),
 			meanings = fields.getElementsByClassName('meaning'),
