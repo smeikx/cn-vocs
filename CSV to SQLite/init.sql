@@ -17,10 +17,12 @@ CREATE TABLE finals
 
 CREATE TABLE characters
 (
-	character TEXT PRIMARY KEY,
+	id INTEGER PRIMARY KEY
+	character TEXT UNIQUE,
 	initial INTEGER, -- FK
 	final INTEGER NOT NULL, -- FK
 	tone INTEGER NOT NULL,
+	radical INTEGER, -- BOOL, > 0 → is radical
 	-- FOREIGN KEYs must be at the end, sqlite rejects them otherwise
 	FOREIGN KEY (initial) REFERENCES initials (id),
 	FOREIGN KEY (final) REFERENCES finals (id)
