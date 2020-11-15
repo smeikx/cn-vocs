@@ -218,6 +218,7 @@ const Entry = (() =>
 		sessionStorage.ENTRY_COUNT = this.id + 1;
 
 		this.element.appendChild(contextual_fields.element);
+		ENTRIES.push(this);
 	}
 })();
 
@@ -239,7 +240,6 @@ const Entry = (() =>
 const create_entry = () =>
 {
 	const new_entry = new Entry();
-	ENTRIES.push(new_entry);
 	ENTRIES_CONTAINER.appendChild(new_entry.element);
 	new_entry.primary_field.focus();
 };
@@ -312,8 +312,6 @@ document.getElementById('clear').addEventListener('click', () =>
 			const
 				type = sessionStorage[id + 'type'],
 				new_entry = new Entry(type);
-
-			ENTRIES.push(new_entry);
 
 			const fields = Object.entries(new_entry.fields);
 			for (let i = fields.length - 1; i >= 0; --i)
