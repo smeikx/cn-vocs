@@ -62,7 +62,6 @@ const ENTRIES_CONTAINER = document.getElementById('entries');
 	id: , //	for retrieving from ENTRIES and backup
 	primary_field: , // the first field
 	contextual_fields: , // the fields that change depending on type
-	switch_type: function (fields) {}, // function to switch type
 };
 */
 
@@ -158,34 +157,43 @@ const Entry = (() =>
 	const update_fields = (entry) =>
 		entry.fields = Object.assign({[entry.type]: entry.primary_field}, entry.contextual_fields.fields);
 
-	const shall_switch = (current_char_count, previous_char_count) =>
-		(previous_char_count > 1 && current_char_count <= 1) ||
-		(previous_char_count <= 1 && current_char_count > 1);
-
 	// changes the type and replaces all accompanying fields
-	const switch_type = function ()
+	const switch_type = function (entry)
 	{
 		const
-			old_type = this.type,
-			old_contextual_fields = pool.give(old_type, this.contextual_fields);
+			old_type = entry.type,
+			old_contextual_fields = pool.give(old_type, entry.contextual_fields);
 
 		// clear values
 		const fields = Object.values(old_contextual_fields.fields);
 		for (let i = fields.length; i > 0; fields[--i].value = '');
 
-		this.type =
-			this.primary_field.name =
-				sessionStorage[this.id + 'type'] =
+		entry.type =
+			entry.primary_field.name =
+				sessionStorage[entry.id + 'type'] =
 					old_type == 'character' ? 'expression' : 'character';
-		this.primary_field.classList.replace(old_type, this.type);
+		entry.primary_field.classList.replace(old_type, entry.type);
 
-		this.contextual_fields = get_contextual_fields(this.type);
+		entry.contextual_fields = get_contextual_fields(entry.type);
 
-		update_fields(this);
-		update_ids(this);
+		update_fields(entry);
+		update_ids(entry);
 
-		this.element.replaceChild(this.contextual_fields.element, old_contextual_fields.element);
+		entry.element.replaceChild(entry.contextual_fields.element, old_contextual_fields.element);
 	};
+
+	const update_context = (event) =>
+	{
+		const
+			target = event.target,
+			key = target.dataset.id + 'primary_char_count',
+			previous_char_count = sessionStorage[key],
+			current_char_count = sessionStorage[key] = target.value.length;
+
+		if (previous_char_count > 1 && current_char_count <= 1 ||
+			previous_char_count <= 1 && current_char_count > 1)
+			switch_type(ENTRIES[target.dataset.id]);
+	}
 
 	return function (type = 'character')
 	{
@@ -200,15 +208,7 @@ const Entry = (() =>
 			sessionStorage[this.id + 'type'] = type;
 
 		let current_char_count, previous_char_count = 0;
-		primary_field.addEventListener('input', (event) =>
-		{
-			current_char_count = event.target.value.length;
-			if (shall_switch(current_char_count, previous_char_count))
-				this.switch_type();
-			previous_char_count = current_char_count;
-		});
-
-		this.switch_type = switch_type;
+		primary_field.addEventListener('input', update_context);
 
 		update_fields(this);
 
