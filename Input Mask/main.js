@@ -187,14 +187,17 @@ const Entry = (() =>
 		this.element.replaceChild(this.contextual_fields.element, old_contextual_fields.element);
 	};
 
-	return function ()
+	return function (type = 'character')
 	{
 		const
 			container = this.element = document.createElement('li'),
 			primary_field = this.primary_field = container.appendChild(document.createElement('input')),
-			contextual_fields = this.contextual_fields = get_contextual_fields('character');
+			contextual_fields = this.contextual_fields = get_contextual_fields(type);
 
-		primary_field.className = primary_field.name = 'character';
+		this.type =
+			primary_field.className =
+			primary_field.name =
+			sessionStorage[this.id + 'type'] = type;
 
 		let current_char_count, previous_char_count = 0;
 		primary_field.addEventListener('input', (event) =>
@@ -207,13 +210,11 @@ const Entry = (() =>
 
 		this.switch_type = switch_type;
 
-		this.type = 'character';
 		update_fields(this);
 
 		this.id = ENTRY_COUNT++;
 		update_ids(this);
 
-		sessionStorage[this.id + 'type'] = 'character';
 		sessionStorage.ENTRY_COUNT = this.id + 1;
 
 		this.element.appendChild(contextual_fields.element);
@@ -310,13 +311,9 @@ document.getElementById('clear').addEventListener('click', () =>
 		{
 			const
 				type = sessionStorage[id + 'type'],
-				new_entry = new Entry();
-			// TODO: modify Entry() to take type as argument
+				new_entry = new Entry(type);
 
 			ENTRIES.push(new_entry);
-
-			if (type == 'expression')
-				new_entry.switch_type();
 
 			const fields = Object.entries(new_entry.fields);
 			for (let i = fields.length - 1; i >= 0; --i)
