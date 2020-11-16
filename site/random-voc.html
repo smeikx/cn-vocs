@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+	<meta charset='UTF-8'>
+	<title>Random Vocable</title>
+	<link rel='stylesheet' href='random-voc.css'>
+</head>
+<body>
+	<main>
+		<div id='char-container' class='hidden'>
+			<div id='character'></div>
+			<div id='pinyin'></div>
+			<div id='translation'></div>
+			<div id='radicals'></div>
+		</div>
+		<div id='expr-container' class='hidden'>
+			<div id='expression'></div>
+			<div id='meaning'></div>
+		</div>
+	</main>
+	<nav id='buttons'>
+		<input id='json-input' type='file' multiple accept='.json'>
+		<button id='load-button' type='button'>Load JSON</button>
+		<button id='next-button' type='button'>Next Voc</button>
+	</nav>
+</body>
+<script src='pinyin.js'></script>
+<script src='parse.js'></script>
+</html>
