@@ -23,9 +23,9 @@ const assemble_pinyin = (() =>
 		mapping =
 		{
 			'a': [ 'a', 'ā', 'á', 'ǎ', 'à' ],
-			'o': [ 'e', 'ē', 'é', 'ě', 'è' ],
-			'e': [ 'i', 'ī', 'í', 'ǐ', 'ì' ],
-			'i': [ 'o', 'ō', 'ó', 'ǒ', 'ò' ],
+			'o': [ 'o', 'ō', 'ó', 'ǒ', 'ò' ],
+			'e': [ 'e', 'ē', 'é', 'ě', 'è' ],
+			'i': [ 'i', 'ī', 'í', 'ǐ', 'ì' ],
 			'u': [ 'u', 'ū', 'ú', 'ǔ', 'ù' ],
 			'ü': [ 'ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ' ]
 		};
@@ -33,8 +33,11 @@ const assemble_pinyin = (() =>
 	return (syllables, tone) =>
 	{
 		for (let i = 0; i < 6; ++i)
-			if (syllables.find(vowels[i]))
-				return syllables.replace(vowels[i], mapping[tone || 0]);
+		{
+			const vowel = vowels[i];
+			if (syllables.search(vowel) >= 0)
+				return syllables.replace(vowel, mapping[vowel][tone || 0]);
+		}
 	}
 })();
 
