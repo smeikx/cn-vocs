@@ -273,10 +273,7 @@ document.getElementById('clear').addEventListener('click', () =>
 
 	document.getElementById('upload-json').addEventListener('change', async (event) =>
 	{
-		const
-			files = event.target.files,
-			file_reader = new FileReader();
-
+		const files = event.target.files;
 		for (let i = files.length - 1; i >= 0; --i)
 		{
 			const
