@@ -78,7 +78,7 @@ const Entry = (() =>
 				label.htmlFor = 'translation';
 				label.innerText = 'Translation';
 
-				const translation = this.fields.translation = container.appendChild(document.createElement('input'));
+				const translation = this.fields.translation = container.appendChild(document.createElement('textarea'));
 				translation.className = translation.name = 'translation';
 
 
@@ -96,7 +96,7 @@ const Entry = (() =>
 				label.htmlFor = 'meaning';
 				label.innerText = 'Meaning';
 
-				const meaning = this.fields.meaning = container.appendChild(document.createElement('input'));
+				const meaning = this.fields.meaning = container.appendChild(document.createElement('textarea'));
 				meaning.className = meaning.name = 'meaning';
 			}
 		}
