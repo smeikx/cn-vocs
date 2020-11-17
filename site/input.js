@@ -53,16 +53,17 @@ const Entry = (() =>
 			if (type == 'character')
 			{
 				label = container.appendChild(document.createElement('label'));
-				label.for = 'pinyin';
+				label.htmlFor = 'pinyin';
 				label.innerText = 'Pinyin';
 
 				const pinyin = this.fields.pinyin = container.appendChild(document.createElement('input'));
 				pinyin.className = pinyin.name = 'pinyin';
-				pinyin.size = pinyin.minlength = pinyin.maxlength = 1;
+				pinyin.minlength = 1;
+				pinyin.size = pinyin.maxlength = 6;
 
 
 				label = container.appendChild(document.createElement('label'));
-				label.for = 'tone';
+				label.htmlFor = 'tone';
 				label.innerText = 'Tone';
 
 				const tone = this.fields.tone = container.appendChild(document.createElement('input'));
@@ -74,7 +75,7 @@ const Entry = (() =>
 
 
 				label = container.appendChild(document.createElement('label'));
-				label.for = 'translation';
+				label.htmlFor = 'translation';
 				label.innerText = 'Translation';
 
 				const translation = this.fields.translation = container.appendChild(document.createElement('input'));
@@ -82,7 +83,7 @@ const Entry = (() =>
 
 
 				label = container.appendChild(document.createElement('label'));
-				label.for = 'radicals';
+				label.htmlFor = 'radicals';
 				label.innerText = 'Radicals';
 
 				const radicals = this.fields.radicals = container.appendChild(document.createElement('input'));
@@ -92,7 +93,7 @@ const Entry = (() =>
 			else // type == 'expression'
 			{
 				label = container.appendChild(document.createElement('label'));
-				label.for = 'meaning';
+				label.htmlFor = 'meaning';
 				label.innerText = 'Meaning';
 
 				const meaning = this.fields.meaning = container.appendChild(document.createElement('input'));
