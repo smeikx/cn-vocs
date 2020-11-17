@@ -1,0 +1,133 @@
+html, body, form, ul, li, label, input, textarea, button
+{
+	margin: 0;
+	padding: 0;
+	border: none;
+	box-sizing: border-box;
+}
+
+html
+{
+	--text-color: #000;
+	--page-background-color: #fff;
+	--entry-background-color: #f1f1f1;
+	--input-background-color: #fdfdfd;
+	--accent-color: hotpink;
+}
+
+@media (prefers-color-scheme: dark)
+{
+	html
+	{
+		--text-color: var(--white);
+		--background-color: var(--black);
+	}
+}
+
+html
+{
+	color: var(--text-color);
+	background-color: var(--page-background-color);
+	font-size: 18px;
+}
+
+form
+{
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#entries
+{
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#buttons, li
+{
+	margin: 1rem;
+	padding: .7rem;
+}
+
+li
+{
+	background-color: var(--entry-background-color);
+	border-radius: 7px;
+	max-width: 13rem;
+}
+
+label
+{
+	display: block;
+	text-transform: uppercase;
+	opacity: .3;
+	font-size: .8rem;
+	letter-spacing: .02em;
+	margin-left: 0.1rem;
+}
+
+input, textarea
+{
+	color: inherit;
+	background-color: var(--input-background-color);
+	border-radius: 5px;
+	padding: .4em;
+	margin-bottom: .5rem;
+	width: 100%;
+
+	/* to prevent jumpy change of height when adding a border when focussed */
+	border: 1px solid rgba(0,0,0,0);
+}
+
+input:focus, textarea:focus
+{
+	outline: none;
+	border-color: var(--accent-color);
+}
+
+label[for='tone']
+{
+	display: none;
+}
+
+.character, .expression
+{
+	font-size: 4rem;
+	text-align: center;
+}
+
+.pinyin, .tone
+{
+	width: initial;
+}
+
+.pinyin
+{
+	margin-right: 0.5rem;
+}
+
+textarea
+{
+	max-width: 100%;
+}
+
+#buttons
+{
+	display: flex;
+	flex-flow: column wrap;
+	padding-left: 0;
+}
+
+button
+{
+	padding: .5rem;
+	border: solid 2px var(--accent-color);
+	border-radius: 5px;
+	margin-bottom: 1rem;
+}
+
+button:focus
+{
+	background-color: var(--accent-color);
+}
