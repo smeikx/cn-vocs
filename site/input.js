@@ -53,6 +53,15 @@ const Entry = (() =>
 			if (type == 'character')
 			{
 				label = container.appendChild(document.createElement('label'));
+				label.htmlFor = 'radicals';
+				label.innerText = 'Radicals';
+
+				const radicals = this.fields.radicals = container.appendChild(document.createElement('input'));
+				radicals.className = radicals.name = 'radicals';
+				radicals.size = radicals.maxlength = 5;
+
+
+				label = container.appendChild(document.createElement('label'));
 				label.htmlFor = 'pinyin';
 				label.innerText = 'Pinyin';
 
@@ -80,15 +89,6 @@ const Entry = (() =>
 
 				const translation = this.fields.translation = container.appendChild(document.createElement('textarea'));
 				translation.className = translation.name = 'translation';
-
-
-				label = container.appendChild(document.createElement('label'));
-				label.htmlFor = 'radicals';
-				label.innerText = 'Radicals';
-
-				const radicals = this.fields.radicals = container.appendChild(document.createElement('input'));
-				radicals.className = radicals.name = 'radicals';
-				radicals.size = radicals.maxlength = 5;
 			}
 			else // type == 'expression'
 			{
