@@ -19,8 +19,11 @@ html
 {
 	html
 	{
-		--text-color: var(--white);
-		--background-color: var(--black);
+		--text-color: #ddd;
+		--page-background-color: #000;
+		--entry-background-color: #121212;
+		--input-background-color: #1f1f1f;
+		--accent-color: hotpink;
 	}
 }
 
