@@ -55,66 +55,70 @@ const Entry = (() =>
 	});
 
 	// Create an object containing all the fields necessary for the specified type.
-	const Contextual_Fields = (() =>
+	const Contextual_Fields = function (type)
 	{
-		return function (type)
+		const container = this.element = document.createElement('div');
+		this.fields = {};
+		this.type = type;
+		let label;
+
+		if (type == 'character')
 		{
-			const container = this.element = document.createElement('div');
-			this.fields = {};
-			this.type = type;
-			let label;
+			label = container.appendChild(document.createElement('label'));
+			label.htmlFor = 'radicals';
+			label.innerText = 'Radicals';
 
-			if (type == 'character')
-			{
-				label = container.appendChild(document.createElement('label'));
-				label.htmlFor = 'radicals';
-				label.innerText = 'Radicals';
-
-				const radicals = this.fields.radicals = container.appendChild(document.createElement('input'));
-				radicals.className = radicals.name = 'radicals';
-				radicals.size = radicals.maxlength = 5;
+			const radicals = this.fields.radicals = container.appendChild(document.createElement('input'));
+			radicals.className = radicals.name = 'radicals';
+			radicals.size = radicals.maxlength = 5;
 
 
-				label = container.appendChild(document.createElement('label'));
-				label.htmlFor = 'pinyin';
-				label.innerText = 'Pinyin';
+			label = container.appendChild(document.createElement('label'));
+			label.htmlFor = 'pinyin';
+			label.innerText = 'Pinyin';
 
-				const pinyin = this.fields.pinyin = container.appendChild(document.createElement('input'));
-				pinyin.className = pinyin.name = 'pinyin';
-				pinyin.minlength = 1;
-				pinyin.size = pinyin.maxlength = 6;
-
-
-				label = container.appendChild(document.createElement('label'));
-				label.htmlFor = 'tone';
-				label.innerText = 'Tone';
-
-				const tone = this.fields.tone = container.appendChild(document.createElement('input'));
-				tone.className = tone.name = 'tone';
-				tone.type = 'number';
-				tone.min = 0;
-				tone.max = 4;
-				tone.size = 1;
+			const pinyin = this.fields.pinyin = container.appendChild(document.createElement('input'));
+			pinyin.className = pinyin.name = 'pinyin';
+			pinyin.minlength = 1;
+			pinyin.size = pinyin.maxlength = 6;
 
 
-				label = container.appendChild(document.createElement('label'));
-				label.htmlFor = 'translation';
-				label.innerText = 'Translation';
+			label = container.appendChild(document.createElement('label'));
+			label.htmlFor = 'tone';
+			label.innerText = 'Tone';
 
-				const translation = this.fields.translation = container.appendChild(document.createElement('textarea'));
-				translation.className = translation.name = 'translation';
-			}
-			else // type == 'expression'
-			{
-				label = container.appendChild(document.createElement('label'));
-				label.htmlFor = 'meaning';
-				label.innerText = 'Meaning';
+			const tone = this.fields.tone = container.appendChild(document.createElement('input'));
+			tone.className = tone.name = 'tone';
+			tone.type = 'number';
+			tone.min = 0;
+			tone.max = 4;
+			tone.size = 1;
 
-				const meaning = this.fields.meaning = container.appendChild(document.createElement('textarea'));
-				meaning.className = meaning.name = 'meaning';
-			}
+
+			const pinyin_display = this.pinyin_display = container.appendChild(document.createElement('div'));
+			pinyin_display.className = 'pinyin_display';
+
+
+			label = container.appendChild(document.createElement('label'));
+			label.htmlFor = 'translation';
+			label.innerText = 'Translation';
+
+			const translation = this.fields.translation = container.appendChild(document.createElement('textarea'));
+			translation.className = translation.name = 'translation';
 		}
-	})();
+		else // type == 'expression'
+		{
+			const pinyin_display = this.pinyin_display = container.appendChild(document.createElement('div'));
+			pinyin_display.className = 'pinyin_display';
+
+			label = container.appendChild(document.createElement('label'));
+			label.htmlFor = 'meaning';
+			label.innerText = 'Meaning';
+
+			const meaning = this.fields.meaning = container.appendChild(document.createElement('textarea'));
+			meaning.className = meaning.name = 'meaning';
+		}
+	}
 
 	// sets dataset.id of all fields
 	const update_ids = function (entry)
@@ -130,6 +134,30 @@ const Entry = (() =>
 	const update_fields = (entry) =>
 		entry.fields = Object.assign({[entry.type]: entry.primary_field}, entry.contextual_fields.fields);
 
+	const update_expr_pinyin_display = (event) =>
+	{
+		const
+			entry = ENTRIES[event.target.dataset.id],
+			chars = event.target.value,
+			length = chars.length;
+
+		let result = '';
+		for (let i = 0; i < length; ++i)
+		{
+			if (chars[i] == ' ')
+				result += ' ';
+			else
+			{
+				const record = VOCS.characters[chars[i]];
+				if (record)
+					result += assemble_pinyin_from_indexes(record[0], record[1], record[2]);
+				else
+					result += '?';
+			}
+		}
+		entry.pinyin_display.innerText = result;
+	};
+
 	// changes the type and replaces all accompanying fields
 	const switch_type = function (entry)
 	{
@@ -143,9 +171,14 @@ const Entry = (() =>
 
 		entry.type =
 			entry.primary_field.name =
-				sessionStorage[entry.id + 'type'] =
-					old_type == 'character' ? 'expression' : 'character';
+			sessionStorage[entry.id + 'type'] =
+				old_type == 'character' ? 'expression' : 'character';
+
 		entry.primary_field.classList.replace(old_type, entry.type);
+		if (entry.type == 'expression')
+			entry.primary_field.addEventListener('input', update_expr_pinyin_display);
+		else
+			entry.primary_field.removeEventListener('input', update_expr_pinyin_display);
 
 		entry.contextual_fields = get_contextual_fields(entry.type);
 
@@ -190,12 +223,21 @@ const Entry = (() =>
 		}
 	}
 
+	const update_char_pinyin_display = (event) =>
+	{
+		const entry = ENTRIES[event.target.dataset.id];
+		entry.pinyin_display.innerText =
+			assemble_pinyin_from_strings(entry.fields.pinyin.value, entry.fields.tone.value);
+	};
+
 	return function (type = 'character')
 	{
 		const
 			container = this.element = document.createElement('li'),
 			primary_field = this.primary_field = container.appendChild(document.createElement('input')),
 			contextual_fields = this.contextual_fields = get_contextual_fields(type);
+
+		this.pinyin_display = contextual_fields.pinyin_display;
 
 		this.type =
 			primary_field.className =
@@ -206,6 +248,12 @@ const Entry = (() =>
 		primary_field.addEventListener('input', update_context);
 
 		update_fields(this);
+
+		if (type == 'character')
+		{
+			this.fields.pinyin.addEventListener('change', update_char_pinyin_display);
+			this.fields.tone.addEventListener('change', update_char_pinyin_display);
+		}
 
 		this.id = ENTRY_COUNT++;
 		update_ids(this);
@@ -344,6 +392,7 @@ document.getElementById('clear').addEventListener('click', () =>
 				fields.translation.value = values[3];
 				fields.radicals.value = values[4];
 
+				// TODO: update pinyin_display
 				new_entries.push(entry);
 			}
 			for (let i = expression_data.length - 1; i >= 0; --i)
@@ -355,6 +404,7 @@ document.getElementById('clear').addEventListener('click', () =>
 				fields.expression.value = expression_data[i][0];
 				fields.meaning.value = expression_data[i][1][0];
 
+				// TODO: update pinyin_display
 				new_entries.push(entry);
 			}
 			for (let i = new_entries.length - 1; i >= 0; --i)
@@ -381,6 +431,7 @@ document.getElementById('clear').addEventListener('click', () =>
 				field.value = sessionStorage[id + type] || '';
 			}
 			ENTRIES_CONTAINER.appendChild(new_entry.element);
+			// TODO: update pinyin_display
 		}
 	}
 	else create_entry();
