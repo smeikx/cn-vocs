@@ -1,4 +1,5 @@
 'use strict';
+import { sounds, assemble_pinyin, split_pinyin } from './pinyin.js';
 
 // entry → a character, radical or expression with all accompaning information
 // field → one component of a field (e.g. ‘pinyin’ of a character)
@@ -226,8 +227,8 @@ document.getElementById('create-json').addEventListener('click', () =>
 			const {initial, final} = split_pinyin(fields.pinyin.value);
 			result.characters[fields.character.value] =
 			[
-				sound_indexes[initial],
-				sound_indexes[final],
+				sound.indexes[initial],
+				sound.indexes[final],
 				fields.tone.valueAsNumber,
 				fields.translation.value,
 				fields.radicals.value
@@ -292,8 +293,8 @@ document.getElementById('clear').addEventListener('click', () =>
 					fields = entry.fields;
 				fields.character.value = character;
 				fields.pinyin.value = values[0] ?
-					initial_sounds[values[0]] + final_sounds[values[1]] :
-					final_sounds[values[1]];
+					sounds.initial[values[0]] + sounds.final[values[1]] :
+					sounds.final[values[1]];
 				fields.tone.value = values[2];
 				fields.translation.value = values[3];
 				fields.radicals.value = values[4];

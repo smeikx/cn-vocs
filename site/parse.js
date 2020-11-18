@@ -1,5 +1,5 @@
 'use strict';
-
+import { sounds, assemble_pinyin } from './pinyin.js';
 
 const
 	CHARACTERS = {},
@@ -71,7 +71,7 @@ const elements = Object.freeze(
 
 			elements.character.innerText = character;
 			elements.pinyin.innerText = assemble_pinyin(
-				(info[0] ? initial_sounds[info[0]] : '') + final_sounds[info[1]], info[2]);
+				(info[0] ? sounds.initial[info[0]] : '') + sounds.final[info[1]], info[2]);
 			elements.translation.innerText = info[3];
 			elements.radicals.innerText = info[4];
 
