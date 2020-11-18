@@ -157,15 +157,37 @@ const Entry = (() =>
 
 	const update_context = (event) =>
 	{
+		// change the fields according to context (char or expr)
+		
 		const
 			target = event.target,
 			key = target.dataset.id + 'primary_char_count',
 			previous_char_count = sessionStorage[key],
-			current_char_count = sessionStorage[key] = target.value.length;
+			current_char_count = sessionStorage[key] = target.value.length,
+			entry = ENTRIES[target.dataset.id];
 
 		if (previous_char_count > 1 && current_char_count <= 1 ||
 			previous_char_count <= 1 && current_char_count > 1)
-			switch_type(ENTRIES[target.dataset.id]);
+			switch_type(entry);
+
+
+		// autocomplete fields if there is already a record of the new vocable
+
+		const record = VOCS[entry.type + 's'][target.value];
+		if (record)
+		{
+			const fields = entry.fields;
+
+			if (entry.type == 'character')
+			{
+				fields.pinyin.value = sounds.initial[record[0]] + sounds.final[record[1]];
+				fields.tone.value = record[2];
+				fields.translation.value = record[3];
+				fields.radicals.value = record[4];
+			}
+			else // entry.type == 'expression'
+				fields.translation.value = record;
+		}
 	}
 
 	return function (type = 'character')
