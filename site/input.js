@@ -1,6 +1,19 @@
 'use strict';
 import { sounds, assemble_pinyin, split_pinyin } from './pinyin.js';
 
+const VOCS = Object.seal(
+{
+	characters: {},
+	expressions: {}
+});
+
+
+// parse localStorage
+{
+	const json = localStorage['cn-vocs'];
+	json && Object.assign(VOCS, JSON.parse(json));
+}
+
 // entry → a character, radical or expression with all accompaning information
 // field → one component of a field (e.g. ‘pinyin’ of a character)
 
@@ -208,12 +221,14 @@ document.getElementById('create-new-entry').addEventListener('click', create_ent
 
 
 // assign function to download a JSON file
-document.getElementById('create-json').addEventListener('click', () =>
+document.getElementById('save-button').addEventListener('click', () =>
 {
+	// parse Entries
+
 	const result =
 	{
 		characters: {},
-		expressions: []
+		expressions: {}
 	};
 
 	for (let i = ENTRIES.length - 1; i >= 0; --i)
@@ -227,17 +242,19 @@ document.getElementById('create-json').addEventListener('click', () =>
 			const {initial, final} = split_pinyin(fields.pinyin.value);
 			result.characters[fields.character.value] =
 			[
-				sound.indexes[initial],
-				sound.indexes[final],
+				sounds.indexes[initial],
+				sounds.indexes[final],
 				fields.tone.valueAsNumber,
 				fields.translation.value,
 				fields.radicals.value
 			];
 		}
 		else // entry.type == 'expression'
-			result.expressions.push(
-				[entry.fields.expression.value, entry.fields.meaning.value]);
+			result.expressions[entry.fields.expression.value] = entry.fields.meaning.value;
 	}
+
+
+	// export JSON file
 
 	const
 		data = new Blob([JSON.stringify(result)], {type: 'text/plain;charset=utf-8'}),
@@ -249,6 +266,12 @@ document.getElementById('create-json').addEventListener('click', () =>
 	anchor.click();
 
 	window.URL.revokeObjectURL(url);
+
+
+	// save everything to localStorage
+
+	Object.assign(VOCS, result);
+	localStorage['cn-vocs'] = JSON.stringify(VOCS);
 });
 
 
@@ -281,7 +304,7 @@ document.getElementById('clear').addEventListener('click', () =>
 			const
 				data = JSON.parse(await read_file(files[i])),
 				character_data = Object.entries(data.characters),
-				expression_data = data.expressions,
+				expression_data = Object.entries(data.expressions),
 				new_entries = [];
 
 			for (let i = character_data.length - 1; i >= 0; --i)
@@ -304,11 +327,11 @@ document.getElementById('clear').addEventListener('click', () =>
 			for (let i = expression_data.length - 1; i >= 0; --i)
 			{
 				const
-					values = expression_data[i],
 					entry = new Entry('expression'),
 					fields = entry.fields;
-				fields.expression.value = values[0];
-				fields.meaning.value = values[1];
+				
+				fields.expression.value = expression_data[i][0];
+				fields.meaning.value = expression_data[i][1][0];
 
 				new_entries.push(entry);
 			}
