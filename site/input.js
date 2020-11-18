@@ -1,5 +1,5 @@
 'use strict';
-import { sounds, assemble_pinyin, split_pinyin } from './pinyin.js';
+import { sounds, assemble_pinyin_from_strings, assemble_pinyin_from_indexes, split_pinyin } from './pinyin.js';
 
 const VOCS = Object.seal(
 {

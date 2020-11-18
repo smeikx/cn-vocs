@@ -16,7 +16,7 @@ const sounds = Object.freeze(
 });
 
 
-const assemble_pinyin = (() =>
+const assemble_pinyin_from_strings = (() =>
 {
 	const
 		vowels = [ 'a', 'o', 'e', 'i', 'u', 'ü' ],
@@ -41,6 +41,10 @@ const assemble_pinyin = (() =>
 	}
 })();
 
+const assemble_pinyin_from_indexes = (initial_index, final_index, tone) =>
+	 assemble_pinyin_from_strings(
+		initial_index ? sounds.initial[initial_index] + sounds.final[final_index] : sounds.final[final_index],
+		tone);
 
 const split_pinyin = (pinyin) =>
 {
@@ -51,4 +55,4 @@ const split_pinyin = (pinyin) =>
 	};
 };
 
-export { sounds, assemble_pinyin, split_pinyin };
+export { sounds, assemble_pinyin_from_strings, assemble_pinyin_from_indexes, split_pinyin };
