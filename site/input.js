@@ -140,7 +140,7 @@ const Entry = (() =>
 
 
 			const pinyin_display = this.pinyin_display = pinyin_container.appendChild(document.createElement('div'));
-			pinyin_display.className = 'pinyin_display';
+			pinyin_display.className = 'pinyin-display';
 
 
 			label = container.appendChild(document.createElement('label'));
@@ -153,7 +153,7 @@ const Entry = (() =>
 		else // type == 'expression'
 		{
 			const pinyin_display = this.pinyin_display = container.appendChild(document.createElement('div'));
-			pinyin_display.className = 'pinyin_display';
+			pinyin_display.className = 'pinyin-display';
 
 			label = container.appendChild(document.createElement('label'));
 			label.htmlFor = 'meaning';
