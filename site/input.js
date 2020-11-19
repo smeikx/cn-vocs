@@ -414,7 +414,7 @@ document.getElementById('clear').addEventListener('click', () =>
 				fields.translation.value = values[3];
 				fields.radicals.value = values[4];
 
-				// TODO: update pinyin_display
+				entry.update_pinyin_display(entry);
 				new_entries.push(entry);
 			}
 			for (let i = expression_data.length - 1; i >= 0; --i)
@@ -426,7 +426,7 @@ document.getElementById('clear').addEventListener('click', () =>
 				fields.expression.value = expression_data[i][0];
 				fields.meaning.value = expression_data[i][1][0];
 
-				// TODO: update pinyin_display
+				entry.update_pinyin_display(entry);
 				new_entries.push(entry);
 			}
 			for (let i = new_entries.length - 1; i >= 0; --i)
@@ -452,8 +452,8 @@ document.getElementById('clear').addEventListener('click', () =>
 				const [type, field] = fields[i];
 				field.value = sessionStorage[id + type] || '';
 			}
+			new_entry.update_pinyin_display(new_entry);
 			ENTRIES_CONTAINER.appendChild(new_entry.element);
-			// TODO: update pinyin_display
 		}
 	}
 	else create_entry();
