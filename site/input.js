@@ -37,6 +37,9 @@ const ENTRIES_CONTAINER = document.getElementById('entries');
 };
 */
 
+// TODO: Move all currently closured, private methods (the ones taking ‘entry’ as argument) to the prototype;
+// use the underscore convention to mark them as private;
+// consider using Object.defineProperties().
 const Entry = (() =>
 {
 	const pool = Object.seal(
@@ -51,6 +54,42 @@ const Entry = (() =>
 		{
 			this[type].push(element);
 			return element;
+		}
+	});
+
+	const update_pinyin_display = Object.freeze(
+	{
+		character: (entry) =>
+		{
+			entry.pinyin_display.innerText = assemble_pinyin_from_strings(
+				entry.fields.pinyin.value, entry.fields.tone.value);
+		},
+		expression: (entry) =>
+		{
+			const
+				chars = entry.primary_field.value,
+				length = chars.length;
+
+			let result = '';
+			for (let i = 0; i < length; ++i)
+			{
+				if (chars[i] == ' ')
+					result += ' ';
+				else
+				{
+					const record = VOCS.characters[chars[i]];
+					if (record)
+						result += assemble_pinyin_from_indexes(record[0], record[1], record[2]);
+					else
+						result += '?';
+				}
+			}
+			entry.pinyin_display.innerText = result;
+		},
+		event: (event) =>
+		{
+			const entry = ENTRIES[event.target.dataset.id];
+			entry.update_pinyin_display(entry);
 		}
 	});
 
@@ -73,21 +112,26 @@ const Entry = (() =>
 			radicals.size = radicals.maxlength = 5;
 
 
-			label = container.appendChild(document.createElement('label'));
+			const pinyin_container = container.appendChild(document.createElement('div'));
+			pinyin_container.className = 'pinyin-container';
+			pinyin_container.addEventListener('change', update_pinyin_display.event);
+
+
+			label = pinyin_container.appendChild(document.createElement('label'));
 			label.htmlFor = 'pinyin';
 			label.innerText = 'Pinyin';
 
-			const pinyin = this.fields.pinyin = container.appendChild(document.createElement('input'));
+			const pinyin = this.fields.pinyin = pinyin_container.appendChild(document.createElement('input'));
 			pinyin.className = pinyin.name = 'pinyin';
 			pinyin.minlength = 1;
 			pinyin.size = pinyin.maxlength = 6;
 
 
-			label = container.appendChild(document.createElement('label'));
+			label = pinyin_container.appendChild(document.createElement('label'));
 			label.htmlFor = 'tone';
 			label.innerText = 'Tone';
 
-			const tone = this.fields.tone = container.appendChild(document.createElement('input'));
+			const tone = this.fields.tone = pinyin_container.appendChild(document.createElement('input'));
 			tone.className = tone.name = 'tone';
 			tone.type = 'number';
 			tone.min = 0;
@@ -95,7 +139,7 @@ const Entry = (() =>
 			tone.size = 1;
 
 
-			const pinyin_display = this.pinyin_display = container.appendChild(document.createElement('div'));
+			const pinyin_display = this.pinyin_display = pinyin_container.appendChild(document.createElement('div'));
 			pinyin_display.className = 'pinyin_display';
 
 
@@ -134,30 +178,6 @@ const Entry = (() =>
 	const update_fields = (entry) =>
 		entry.fields = Object.assign({[entry.type]: entry.primary_field}, entry.contextual_fields.fields);
 
-	const update_expr_pinyin_display = (event) =>
-	{
-		const
-			entry = ENTRIES[event.target.dataset.id],
-			chars = event.target.value,
-			length = chars.length;
-
-		let result = '';
-		for (let i = 0; i < length; ++i)
-		{
-			if (chars[i] == ' ')
-				result += ' ';
-			else
-			{
-				const record = VOCS.characters[chars[i]];
-				if (record)
-					result += assemble_pinyin_from_indexes(record[0], record[1], record[2]);
-				else
-					result += '?';
-			}
-		}
-		entry.pinyin_display.innerText = result;
-	};
-
 	// changes the type and replaces all accompanying fields
 	const switch_type = function (entry)
 	{
@@ -175,14 +195,22 @@ const Entry = (() =>
 				old_type == 'character' ? 'expression' : 'character';
 
 		entry.primary_field.classList.replace(old_type, entry.type);
-		if (entry.type == 'expression')
-			entry.primary_field.addEventListener('input', update_expr_pinyin_display);
-		else
-			entry.primary_field.removeEventListener('input', update_expr_pinyin_display);
 
 		entry.contextual_fields = get_contextual_fields(entry.type);
 
+		if (entry.type == 'expression')
+		{
+			entry.update_pinyin_display = update_pinyin_display.expression;
+			entry.primary_field.addEventListener('input', update_pinyin_display.event);
+		}
+		else
+		{
+			entry.update_pinyin_display = update_pinyin_display.character;
+			entry.primary_field.removeEventListener('input', update_pinyin_display.event);
+		}
+		
 		update_fields(entry);
+		entry.update_pinyin_display(entry);
 		update_ids(entry);
 
 		entry.element.replaceChild(entry.contextual_fields.element, old_contextual_fields.element);
@@ -198,7 +226,7 @@ const Entry = (() =>
 			previous_char_count = sessionStorage[key],
 			current_char_count = sessionStorage[key] = target.value.length,
 			entry = ENTRIES[target.dataset.id];
-
+	
 		if (previous_char_count > 1 && current_char_count <= 1 ||
 			previous_char_count <= 1 && current_char_count > 1)
 			switch_type(entry);
@@ -223,12 +251,6 @@ const Entry = (() =>
 		}
 	}
 
-	const update_char_pinyin_display = (event) =>
-	{
-		const entry = ENTRIES[event.target.dataset.id];
-		entry.pinyin_display.innerText =
-			assemble_pinyin_from_strings(entry.fields.pinyin.value, entry.fields.tone.value);
-	};
 
 	return function (type = 'character')
 	{
@@ -237,22 +259,22 @@ const Entry = (() =>
 			primary_field = this.primary_field = container.appendChild(document.createElement('input')),
 			contextual_fields = this.contextual_fields = get_contextual_fields(type);
 
-		this.pinyin_display = contextual_fields.pinyin_display;
-
 		this.type =
 			primary_field.className =
 			primary_field.name =
 			sessionStorage[this.id + 'type'] = type;
 
-		let current_char_count, previous_char_count = 0;
 		primary_field.addEventListener('input', update_context);
+		this.pinyin_display = contextual_fields.pinyin_display;
 
 		update_fields(this);
 
 		if (type == 'character')
+			this.update_pinyin_display = update_pinyin_display.character;
+		else
 		{
-			this.fields.pinyin.addEventListener('change', update_char_pinyin_display);
-			this.fields.tone.addEventListener('change', update_char_pinyin_display);
+			this.update_pinyin_display = update_pinyin_display.expression;
+			primary_field.addEventListener('input', update_pinyin_display.event);
 		}
 
 		this.id = ENTRY_COUNT++;
